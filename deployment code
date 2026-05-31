@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Task Manager App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body {font-family: Arial; max-width: 700px; margin: 20px auto; padding: 10px;}
+input, select, button {padding: 8px; margin: 5px; border: 1px solid #ccc; border-radius: 4px;}
+button {cursor: pointer; background: #007bff; color: white; border: none;}
+button:hover {background: #0056b3;}
+.task {border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;}
+.hidden {display: none;}
+.error {color: red; font-size: 14px;}
+</style>
+</head>
+<body>
+
+<!-- AUTH SECTION -->
+<div id="authSection">
+  <h2>Task Manager App</h2>
+
+  <div id="registerForm">
+    <h3>Register</h3>
+    <input id="regUser" placeholder="Username">
+    <input id="regPass" type="password" placeholder="Password">
+    <button onclick="register()">Register</button>
+    <p class="error" id="regError"></p>
+  </div>
+
+  <div id="loginForm">
+    <h3>Login</h3>
+    <input id="logUser" placeholder="Username">
+    <input id="logPass" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p class="error" id="logError"></p>
+  </div>
+</div>
+
+<!-- TASK SECTION -->
+<div id="taskSection" class="hidden">
+  <h2>Task Management</h2>
+  <button onclick="logout()">Logout</button>
+
+  <div>
+    <input id="taskName" placeholder="Task Name">
+    <select id="taskStatus">
+      <option>Todo</option>
+      <option>In Progress</option>
+      <option>Done</option>
+    </select>
+    <button onclick="addTask()">Add Task</button>
+  </div>
+
+  <div id="taskList"></div>
+</div>
+
+<script>
+let currentUser = null;
+
+function getUsers() { return JSON.parse(localStorage.getItem('users') || '{}'); }
+function saveUsers(u) { localStorage.setItem('users', JSON.stringify(u)); }
+function getTasks(user) { return JSON.parse(localStorage.getItem('tasks_' + user) || '[]'); }
+function saveTasks(user, tasks) { localStorage.setItem('tasks_' + user, JSON.stringify(tasks)); }
+
+function register() {
+  const user = document.getElementById('regUser').value.trim();
+  const pass = document.getElementById('regPass').value.trim();
+  const users = getUsers();
+
+  if(!user ||!pass) return document.getElementById('regError').textContent = "Fill both fields";
+  if(users[user]) return document.getElementById('regError').textContent = "User exists";
+
+  users[user] = pass;
+  saveUsers(users);
+  document.getElementById('regError').textContent = "Registered! Now login";
+}
+
+function login() {
+  const user = document.getElementById('logUser').value.trim();
+  const pass = document.getElementById('logPass').value.trim();
+  const users = getUsers();
+
+  if(users[user]!== pass) return document.getElementById('logError').textContent = "Invalid credentials";
+
+  currentUser = user;
+  document.getElementById('authSection').classList.add('hidden');
+  document.getElementById('taskSection').classList.remove('hidden');
+  renderTasks();
+}
+
+function logout() {
+  currentUser = null;
+  document.getElementById('authSection').classList.remove('hidden');
+  document.getElementById('taskSection').classList.add('hidden');
+}
+
+function addTask() {
+  const name = document.getElementById('taskName').value.trim();
+  const status = document.getElementById('taskStatus').value;
+  if(!name) return;
+
+  const tasks = getTasks(currentUser);
+  tasks.push({id: Date.now(), name, status});
+  saveTasks(currentUser, tasks);
+  document.getElementById('taskName').value = "";
+  renderTasks();
+}
+
+function updateTask(id, newStatus) {
+  const tasks = getTasks(currentUser);
+  const task = tasks.find(t => t.id === id);
+  if(task) task.status = newStatus;
+  saveTasks(currentUser, tasks);
+  renderTasks();
+}
+
+function deleteTask(id) {
+  let tasks = getTasks(currentUser);
+  tasks = tasks.filter(t => t.id!== id);
+  saveTasks(currentUser, tasks);
+  renderTasks();
+}
+
+function renderTasks() {
+  const tasks = getTasks(currentUser);
+  const list = document.getElementById('taskList');
+  list.innerHTML = "";
+
+  tasks.forEach(task => {
+    list.innerHTML += `
+      <div class="task">
+        <div>
+          <strong>${task.name}</strong><br>
+          Status: ${task.status}
+        </div>
+        <div>
+          <select onchange="updateTask(${task.id}, this.value)">
+            <option ${task.status==='Todo'?'selected':''}>Todo</option>
+            <option ${task.status==='In Progress'?'selected':''}>In Progress</option>
+            <option ${task.status==='Done'?'selected':''}>Done</option>
+          </select>
+          <button onclick="deleteTask(${task.id})">Delete</button>
+        </div>
+      </div>
+    `;
+  });
+}
+</script>
+</body>
+</html>
