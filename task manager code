@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Task Manager App</title>
+
+<style>
+body{
+    font-family:Arial;
+    background:#f4f4f4;
+    padding:20px;
+}
+
+.container{
+    max-width:800px;
+    margin:auto;
+}
+
+input,select,button{
+    padding:10px;
+    margin:5px;
+}
+
+.task{
+    background:white;
+    padding:10px;
+    margin:10px 0;
+    border-radius:5px;
+}
+</style>
+
+</head>
+<body>
+
+<div class="container">
+
+<h1>Task Manager App</h1>
+
+<h2>Register</h2>
+<input type="text" id="regUser" placeholder="Username">
+<input type="password" id="regPass" placeholder="Password">
+<button onclick="register()">Register</button>
+
+<h2>Login</h2>
+<input type="text" id="loginUser" placeholder="Username">
+<input type="password" id="loginPass" placeholder="Password">
+<button onclick="login()">Login</button>
+
+<div id="taskSection" style="display:none;">
+
+<h2>Task Management</h2>
+
+<input type="text" id="taskInput" placeholder="Task Name">
+
+<select id="statusInput">
+    <option>Todo</option>
+    <option>In Progress</option>
+    <option>Done</option>
+</select>
+
+<button onclick="addTask()">Add Task</button>
+
+<div id="taskList"></div>
+
+</div>
+
+</div>
+
+<script>
+
+let username="";
+let password="";
+let tasks=[];
+
+function register(){
+
+    username=document.getElementById("regUser").value;
+    password=document.getElementById("regPass").value;
+
+    alert("Registration Successful");
+}
+
+function login(){
+
+    let user=document.getElementById("loginUser").value;
+    let pass=document.getElementById("loginPass").value;
+
+    if(user===username && pass===password){
+        alert("Login Successful");
+        document.getElementById("taskSection").style.display="block";
+    }
+    else{
+        alert("Invalid Login");
+    }
+}
+
+function addTask(){
+
+    let task=document.getElementById("taskInput").value;
+    let status=document.getElementById("statusInput").value;
+
+    if(task===""){
+        alert("Enter Task");
+        return;
+    }
+
+    tasks.push({
+        name:task,
+        status:status
+    });
+
+    document.getElementById("taskInput").value="";
+
+    displayTasks();
+}
+
+function displayTasks(){
+
+    let output="";
+
+    for(let i=0;i<tasks.length;i++){
+
+        output += `
+        <div class="task">
+            <b>${tasks[i].name}</b><br>
+            Status : ${tasks[i].status}<br><br>
+
+            <button onclick="editTask(${i})">Edit</button>
+
+            <button onclick="deleteTask(${i})">
+            Delete
+            </button>
+        </div>`;
+    }
+
+    document.getElementById("taskList").innerHTML=output;
+}
+
+function editTask(index){
+
+    let newTask=prompt("Edit Task",tasks[index].name);
+
+    if(newTask!=null){
+        tasks[index].name=newTask;
+        displayTasks();
+    }
+}
+
+function deleteTask(index){
+
+    tasks.splice(index,1);
+    displayTasks();
+}
+
+</script>
+
+</body>
+</html>
